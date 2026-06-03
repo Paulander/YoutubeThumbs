@@ -78,6 +78,25 @@ export async function getVotesForTest(testId: string) {
   return db.votes.filter((vote) => vote.testId === testId);
 }
 
+export async function getRecentVotes(limit = 20) {
+  const db = await readDb();
+  return [...db.votes]
+    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+    .slice(0, limit);
+}
+
+export async function getDebugSummary() {
+  const db = await readDb();
+  return {
+    tests: [...db.tests].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 20),
+    votes: [...db.votes].sort((a, b) => b.createdAt.localeCompare(a.createdAt)).slice(0, 20),
+    counts: {
+      tests: db.tests.length,
+      votes: db.votes.length
+    }
+  };
+}
+
 export async function getResultsForTest(test: ThumbnailTest) {
   const votes = await getVotesForTest(test.id);
   return calculateVoteResults(

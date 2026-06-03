@@ -1,0 +1,15 @@
+Subject: client approval links for thumbnail options
+
+Hi {{contact_name}},
+
+I saw {{personalization_line}} and thought you might have a use for this.
+
+I built ThumbBattle, a lightweight way for thumbnail designers to show clients 2-4 options in a realistic YouTube-style feed and collect votes/comments through one link.
+
+The goal is not to replace your design judgment. It is to make client feedback and approval less abstract than sending isolated PNGs.
+
+Would you like to try it on a real client option?
+
+If this is not relevant, just reply "no thanks" and I will not follow up.
+
+- Oskar

@@ -2,6 +2,7 @@ export const dynamic = "force-dynamic";
 
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { PageEvent } from "@/components/analytics/page-event";
 import { ContextPreview } from "@/components/preview-shell";
 import { getResultsForTest, getThumbnailTest } from "@/lib/db";
 
@@ -18,6 +19,7 @@ export default async function TestDetailPage({ params }: { params: Promise<{ id:
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
+      <PageEvent event="results_viewed" properties={{ variants: test.variants.length }} />
       <div className="mb-6 grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
         <div>
           <p className="text-sm font-black uppercase tracking-[0.16em] text-coral">Saved test</p>

@@ -17,6 +17,15 @@ export type CompetitorVideo = {
   duration: string;
 };
 
+export type Attribution = {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_segment?: string;
+  landing_path?: string;
+  first_seen_at?: string;
+};
+
 export type ThumbnailTest = {
   id: string;
   shareId: string;
@@ -28,6 +37,7 @@ export type ThumbnailTest = {
   publishedAt: string;
   variants: ThumbnailVariant[];
   competitors: CompetitorVideo[];
+  attribution?: Attribution;
   createdAt: string;
 };
 

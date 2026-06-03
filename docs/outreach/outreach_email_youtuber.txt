@@ -1,0 +1,15 @@
+Subject: quick thumbnail preview before you publish?
+
+Hi {{contact_name}},
+
+I noticed {{personalization_line}} and thought this might be useful for your next upload.
+
+I built ThumbBattle, a simple tool for previewing thumbnail variants in a realistic YouTube-style feed before publishing. You can upload a few options, add your title, and share a voting link with a small group before choosing the final thumbnail.
+
+It is not an official YouTube A/B testing tool. It is more like a pre-publish gut check in context.
+
+Would it be useful if I sent you a link?
+
+If this is not relevant, just reply "no thanks" and I will not follow up.
+
+- Oskar

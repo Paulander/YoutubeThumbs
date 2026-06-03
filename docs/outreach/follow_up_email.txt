@@ -1,0 +1,11 @@
+Subject: Re: quick thumbnail preview before publishing
+
+Hi {{contact_name}},
+
+One quick follow-up. ThumbBattle is a small pre-publish thumbnail preview/voting tool: upload variants, see them in a feed-like context, and share a vote link.
+
+If you want to try it, here is the link: {{tracked_link}}
+
+If not, no worries. Reply "no thanks" and I will not contact you again.
+
+- Oskar

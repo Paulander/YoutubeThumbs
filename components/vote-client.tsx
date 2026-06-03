@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { CheckCircle2, Loader2, MessageSquare, Trophy } from "lucide-react";
+import { trackEvent } from "@/lib/analytics";
 import type { ThumbnailTest, VoteResult } from "@/lib/types";
 import { calculateVoteResults, getWinner, makeId } from "@/lib/utils";
 import { Button } from "./ui";
@@ -58,6 +59,7 @@ export function VoteClient({
       }
 
       setResults(data.results);
+      void trackEvent("vote_submitted", { duplicate: Boolean(data.duplicate), variants: test.variants.length });
       setMessage(data.duplicate ? "You already voted on this link, so the original vote is still counted." : "Vote counted.");
     } catch (caught) {
       setMessage(caught instanceof Error ? caught.message : "Could not save vote.");

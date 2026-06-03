@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { createThumbnailTest, listThumbnailTests } from "@/lib/db";
 import { fetchCompetitorVideos } from "@/lib/youtube";
-import type { CompetitorVideo, ThumbnailVariant } from "@/lib/types";
+import type { Attribution, CompetitorVideo, ThumbnailVariant } from "@/lib/types";
 import { makeId } from "@/lib/utils";
 
 type CreateTestBody = {
@@ -15,6 +15,7 @@ type CreateTestBody = {
   publishedAt?: string;
   variants?: ThumbnailVariant[];
   competitors?: CompetitorVideo[];
+  attribution?: Attribution;
 };
 
 export async function GET(request: Request) {
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
     publishedAt: body.publishedAt?.trim() || "Just now",
     variants,
     competitors,
+    attribution: body.attribution,
     createdAt: new Date().toISOString()
   });
 

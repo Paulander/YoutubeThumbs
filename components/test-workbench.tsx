@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Check, Copy, ImagePlus, Loader2, Moon, Send, Sun, UploadCloud } from "lucide-react";
 import type { CompetitorVideo, PreviewContext, ThumbnailTest, ThumbnailVariant } from "@/lib/types";
+import { captureAttribution, getAttribution, trackEvent } from "@/lib/analytics";
 import { formatKeyword, makeId } from "@/lib/utils";
 import { getMockCompetitors } from "@/lib/mock-data";
 import { Button, Field, inputClass } from "./ui";
@@ -11,6 +12,7 @@ import { ContextPreview, PreviewTabs } from "./preview-shell";
 import { VideoThumb } from "./video-card";
 
 const maxFileSize = 4 * 1024 * 1024;
+const supportedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 function getSessionId() {
   const key = "thumbbattle.session";
@@ -52,9 +54,13 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
 
   useEffect(() => {
     const timeout = window.setTimeout(async () => {
-      const response = await fetch(`/api/youtube?keyword=${encodeURIComponent(targetKeyword)}`);
-      const data = (await response.json()) as { competitors: CompetitorVideo[] };
-      setCompetitors(data.competitors);
+      try {
+        const response = await fetch(`/api/youtube?keyword=${encodeURIComponent(targetKeyword)}`);
+        const data = (await response.json()) as { competitors: CompetitorVideo[] };
+        setCompetitors(data.competitors);
+      } catch {
+        setCompetitors(getMockCompetitors(targetKeyword));
+      }
     }, 350);
 
     return () => window.clearTimeout(timeout);
@@ -71,6 +77,13 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
 
   const selectedVariant = variants[activeVariant] ?? fallbackVariant;
   const shareUrl = savedTest ? `${window.location.origin}/vote/${savedTest.shareId}` : "";
+  const shareText = shareUrl
+    ? `Can you vote on the strongest thumbnail for this video? ${title} ${shareUrl}`
+    : "";
+
+  useEffect(() => {
+    captureAttribution();
+  }, []);
 
   async function handleUpload(files: FileList | null) {
     setError("");
@@ -87,6 +100,13 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
       return;
     }
 
+    const unsupported = nextFiles.find((file) => !supportedTypes.has(file.type));
+
+    if (unsupported) {
+      setError(`${unsupported.name} is not a supported thumbnail type. Use JPG, PNG, or WebP.`);
+      return;
+    }
+
     const oversized = nextFiles.find((file) => file.size > maxFileSize);
 
     if (oversized) {
@@ -94,16 +114,21 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
       return;
     }
 
-    const uploaded = await Promise.all(
-      nextFiles.map(async (file, index) => ({
-        id: makeId("variant"),
-        name: file.name.replace(/\.[^.]+$/, "") || `Variant ${variants.length + index + 1}`,
-        imageUrl: await readFileAsDataUrl(file)
-      }))
-    );
+    try {
+      const uploaded = await Promise.all(
+        nextFiles.map(async (file, index) => ({
+          id: makeId("variant"),
+          name: file.name.replace(/\.[^.]+$/, "") || `Variant ${variants.length + index + 1}`,
+          imageUrl: await readFileAsDataUrl(file)
+        }))
+      );
 
-    setVariants((current) => [...current, ...uploaded]);
-    setActiveVariant(variants.length);
+      setVariants((current) => [...current, ...uploaded]);
+      setActiveVariant(variants.length);
+      void trackEvent("thumbnail_uploaded", { count: uploaded.length });
+    } catch {
+      setError("Upload failed. Try exporting the thumbnail again as a smaller JPG, PNG, or WebP.");
+    }
   }
 
   async function createTest() {
@@ -133,7 +158,8 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
           viewCount,
           publishedAt,
           variants,
-          competitors
+          competitors,
+          attribution: getAttribution()
         })
       });
 
@@ -143,6 +169,8 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
 
       const data = (await response.json()) as { test: ThumbnailTest };
       setSavedTest(data.test);
+      void trackEvent("test_created", { variants: variants.length, keyword_present: Boolean(targetKeyword.trim()) });
+      void trackEvent("vote_link_created", { variants: variants.length });
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Could not create test.");
     } finally {
@@ -156,6 +184,7 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
     }
 
     await navigator.clipboard.writeText(shareUrl);
+    void trackEvent("cta_clicked", { cta: "copy_vote_link" });
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1400);
   }
@@ -251,6 +280,10 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
                     {copied ? "Copied" : "Copy vote link"}
                   </Button>
                 </div>
+                <label className="mt-3 grid gap-1 text-xs font-bold text-ink/60">
+                  Share text
+                  <textarea className="min-h-[74px] resize-none rounded-md border border-black/10 bg-white px-2 py-2 text-xs font-medium text-ink" readOnly value={shareText} />
+                </label>
               </div>
             ) : null}
           </div>
