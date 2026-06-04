@@ -64,6 +64,7 @@ Optional:
 - `YOUTUBE_API_KEY`
 - `NEXT_PUBLIC_POSTHOG_KEY`
 - `NEXT_PUBLIC_POSTHOG_HOST`
+- `NEXT_PUBLIC_SUPABASE_EXAMPLES_BUCKET`
 - `NEXT_PUBLIC_STRIPE_PAYMENT_LINK_FOUNDING`
 - Stripe, Supabase, Resend, and admin/debug placeholders listed in `.env.example`
 
@@ -81,6 +82,10 @@ Important: the current `.data/thumbbattle.json` storage is not durable on Vercel
 - `docs/analytics.md`
 - `docs/payments.md`
 - `docs/outreach/`
+
+## Supabase Example Images
+
+Public inspiration/example images are cataloged in `lib/example-images.ts`. By default, the catalog points at the `examples` bucket in the configured Supabase project. Set `NEXT_PUBLIC_SUPABASE_URL` and optionally `NEXT_PUBLIC_SUPABASE_EXAMPLES_BUCKET` in Vercel.
 
 ## YouTube API
 

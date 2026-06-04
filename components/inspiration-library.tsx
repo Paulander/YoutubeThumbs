@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Search } from "lucide-react";
-import { inspirationExamples } from "@/lib/mock-data";
+import { inspirationExamples } from "@/lib/example-images";
 import { VideoThumb } from "./video-card";
 
 export function InspirationLibrary() {
@@ -11,7 +11,7 @@ export function InspirationLibrary() {
   const examples = useMemo(
     () =>
       inspirationExamples.filter((example) =>
-        [example.niche, example.title, example.pattern].join(" ").toLowerCase().includes(normalized)
+        [example.niche, example.title, example.pattern, example.path, ...example.tags].join(" ").toLowerCase().includes(normalized)
       ),
     [normalized]
   );
@@ -36,6 +36,13 @@ export function InspirationLibrary() {
               <p className="text-xs font-black uppercase tracking-[0.14em] text-coral">{example.niche}</p>
               <h2 className="mt-2 text-lg font-black">{example.title}</h2>
               <p className="mt-2 text-sm leading-6 text-ink/62">{example.pattern}</p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {example.tags.slice(0, 4).map((tag) => (
+                  <span key={tag} className="rounded bg-black/5 px-2 py-1 text-[11px] font-bold text-ink/55">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           </article>
         ))}

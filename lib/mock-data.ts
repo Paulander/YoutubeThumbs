@@ -86,35 +86,3 @@ export function getMockCompetitors(keyword = "creator growth"): CompetitorVideo[
   ];
 }
 
-export const inspirationExamples = [
-  {
-    niche: "gaming",
-    title: "Boss Fight Reveal",
-    pattern: "Huge character silhouette, one clear emotion, high contrast hazard color.",
-    imageUrl: svgThumbnail(5, "BOSS")
-  },
-  {
-    niche: "finance",
-    title: "Portfolio Reset",
-    pattern: "Simple number cue, credible face, one visual metaphor for risk.",
-    imageUrl: svgThumbnail(2, "$10K")
-  },
-  {
-    niche: "fitness",
-    title: "30-Day Change",
-    pattern: "Before/after structure, bright background, body shape readable at phone size.",
-    imageUrl: svgThumbnail(1, "30 DAYS")
-  },
-  {
-    niche: "tech",
-    title: "New Tool Breakdown",
-    pattern: "Product UI crop, strong arrow cue, promise in the title instead of crowded text.",
-    imageUrl: svgThumbnail(3, "TOOL")
-  },
-  {
-    niche: "lifestyle",
-    title: "Room Reset",
-    pattern: "Warm human scene, strong depth, one aspirational outcome.",
-    imageUrl: svgThumbnail(0, "RESET")
-  }
-];
