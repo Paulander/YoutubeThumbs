@@ -163,11 +163,12 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
         })
       });
 
-      if (!response.ok) {
-        throw new Error("Could not create test.");
+      const data = (await response.json()) as { test?: ThumbnailTest; error?: string };
+
+      if (!response.ok || !data.test) {
+        throw new Error(data.error ?? "Could not create test.");
       }
 
-      const data = (await response.json()) as { test: ThumbnailTest };
       setSavedTest(data.test);
       void trackEvent("test_created", { variants: variants.length, keyword_present: Boolean(targetKeyword.trim()) });
       void trackEvent("vote_link_created", { variants: variants.length });

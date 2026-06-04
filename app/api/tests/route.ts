@@ -1,5 +1,6 @@
 export const dynamic = "force-dynamic";
 
+import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { createThumbnailTest, listThumbnailTests } from "@/lib/db";
 import { fetchCompetitorVideos } from "@/lib/youtube";
@@ -41,20 +42,25 @@ export async function POST(request: Request) {
 
   const competitors = body.competitors?.length ? body.competitors.slice(0, 5) : await fetchCompetitorVideos(body.targetKeyword);
 
-  const test = await createThumbnailTest({
-    id: makeId("test"),
-    shareId: makeId("share"),
-    sessionId: body.sessionId || makeId("session"),
-    title,
-    channelName,
-    targetKeyword: body.targetKeyword?.trim(),
-    viewCount: body.viewCount?.trim() || "New upload",
-    publishedAt: body.publishedAt?.trim() || "Just now",
-    variants,
-    competitors,
-    attribution: body.attribution,
-    createdAt: new Date().toISOString()
-  });
+  try {
+    const test = await createThumbnailTest({
+      id: randomUUID(),
+      shareId: makeId("share"),
+      sessionId: body.sessionId || makeId("session"),
+      title,
+      channelName,
+      targetKeyword: body.targetKeyword?.trim(),
+      viewCount: body.viewCount?.trim() || "New upload",
+      publishedAt: body.publishedAt?.trim() || "Just now",
+      variants,
+      competitors,
+      attribution: body.attribution,
+      createdAt: new Date().toISOString()
+    });
 
-  return NextResponse.json({ test }, { status: 201 });
+    return NextResponse.json({ test }, { status: 201 });
+  } catch (error) {
+    console.error("Failed to create thumbnail test", error);
+    return NextResponse.json({ error: "Could not create test. Check database configuration and try again." }, { status: 500 });
+  }
 }
