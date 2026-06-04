@@ -3,13 +3,13 @@ import type { CompetitorVideo } from "./types";
 
 const fallbackImageIds = [
   "ai-tech-lab",
-  "productivity-ai",
+  "finance-reset",
   "tech-tool",
   "productivity-worksystem",
-  "productivity-hustle",
-  "finance-reset",
   "fitness-transformation",
-  "gaming-guide"
+  "gaming-guide",
+  "productivity-hustle",
+  "travel-paradise"
 ];
 
 const channels = ["Creator Lab", "Signal Studio", "Clickcraft", "A/B Room", "Retention House"];

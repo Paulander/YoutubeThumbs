@@ -8,6 +8,7 @@ describe("mock competitor feed", () => {
     expect(competitors).toHaveLength(5);
     expect(competitors.every((competitor) => competitor.imageUrl.startsWith("https://vondxxiyuzlytgiwbsmj.supabase.co/storage/v1/object/public/examples/"))).toBe(true);
     expect(competitors.some((competitor) => competitor.imageUrl.startsWith("data:image/svg"))).toBe(false);
+    expect(new Set(competitors.map((competitor) => competitor.imageUrl)).size).toBe(competitors.length);
   });
 
   it("prioritizes tagged images when the keyword matches a niche", () => {
