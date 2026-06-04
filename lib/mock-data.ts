@@ -1,88 +1,70 @@
+import { exampleImages, getExampleImagesByTag, type ExampleImage } from "./example-images";
 import type { CompetitorVideo } from "./types";
 
-const colors = [
-  ["#ef5b45", "#15161a"],
-  ["#57c7a3", "#265dff"],
-  ["#f2b84b", "#513c17"],
-  ["#7c3aed", "#111827"],
-  ["#06b6d4", "#0f172a"],
-  ["#f97316", "#1f2937"]
+const fallbackImageIds = [
+  "ai-tech-lab",
+  "productivity-ai",
+  "tech-tool",
+  "productivity-worksystem",
+  "productivity-hustle",
+  "finance-reset",
+  "fitness-transformation",
+  "gaming-guide"
 ];
 
-function svgThumbnail(index: number, label: string) {
-  const [start, end] = colors[index % colors.length];
-  const safeLabel = label.replace(/[<>&"]/g, "");
-  const svg = `
-  <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
-    <defs>
-      <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
-        <stop stop-color="${start}" />
-        <stop offset="1" stop-color="${end}" />
-      </linearGradient>
-    </defs>
-    <rect width="1280" height="720" fill="url(#g)" />
-    <circle cx="1040" cy="150" r="190" fill="rgba(255,255,255,0.20)" />
-    <rect x="72" y="88" width="510" height="548" rx="42" fill="rgba(255,255,255,0.16)" />
-    <circle cx="326" cy="264" r="118" fill="rgba(255,255,255,0.82)" />
-    <path d="M170 608c35-118 115-178 238-178s205 60 246 178" fill="rgba(255,255,255,0.82)" />
-    <rect x="650" y="150" width="480" height="80" rx="18" fill="rgba(255,255,255,0.88)" />
-    <rect x="650" y="276" width="390" height="62" rx="18" fill="rgba(255,255,255,0.72)" />
-    <rect x="650" y="382" width="458" height="62" rx="18" fill="rgba(255,255,255,0.72)" />
-    <text x="650" y="560" fill="white" font-size="56" font-weight="900" font-family="Arial, sans-serif">${safeLabel}</text>
-  </svg>`;
+const channels = ["Creator Lab", "Signal Studio", "Clickcraft", "A/B Room", "Retention House"];
+const views = ["482K views", "218K views", "91K views", "744K views", "63K views"];
+const dates = ["2 weeks ago", "5 days ago", "1 month ago", "3 weeks ago", "Yesterday"];
+const durations = ["12:44", "9:18", "15:02", "18:37", "7:55"];
 
-  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+function uniqueImages(images: ExampleImage[]) {
+  const seen = new Set<string>();
+  return images.filter((image) => {
+    if (seen.has(image.id)) {
+      return false;
+    }
+
+    seen.add(image.id);
+    return true;
+  });
+}
+
+function fallbackImages() {
+  const ordered = fallbackImageIds
+    .map((id) => exampleImages.find((image) => image.id === id))
+    .filter((image): image is ExampleImage => Boolean(image));
+
+  return [...ordered, ...exampleImages];
+}
+
+function getCompetitorImages(keyword: string) {
+  const directMatches = getExampleImagesByTag(keyword);
+  return uniqueImages([...directMatches, ...fallbackImages()]).slice(0, 5);
+}
+
+function titleForImage(image: ExampleImage, keyword: string, index: number) {
+  const niche = keyword.trim() || image.niche;
+  const templates = [
+    `I Tested 27 ${niche} Ideas So You Do Not Have To`,
+    `The Simple ${niche} Framework That Changed My Channel`,
+    `Why Most Creators Get ${niche} Completely Wrong`,
+    `I Spent $500 Testing Thumbnails for ${niche}`,
+    `${niche}: The Before and After Nobody Shows You`
+  ];
+
+  return templates[index] ?? image.title;
 }
 
 export function getMockCompetitors(keyword = "creator growth"): CompetitorVideo[] {
   const niche = keyword.trim() || "creator growth";
 
-  return [
-    {
-      id: "mock-1",
-      title: `I Tested 27 ${niche} Ideas So You Do Not Have To`,
-      channelName: "Creator Lab",
-      imageUrl: "/mock/creator-lab-thumbnail.png",
-      views: "482K views",
-      publishedAt: "2 weeks ago",
-      duration: "12:44"
-    },
-    {
-      id: "mock-2",
-      title: `The Simple ${niche} Framework That Changed My Channel`,
-      channelName: "Signal Studio",
-      imageUrl: svgThumbnail(1, "FRAMEWORK"),
-      views: "218K views",
-      publishedAt: "5 days ago",
-      duration: "9:18"
-    },
-    {
-      id: "mock-3",
-      title: `Why Most Creators Get ${niche} Completely Wrong`,
-      channelName: "Clickcraft",
-      imageUrl: svgThumbnail(2, "MISTAKES"),
-      views: "91K views",
-      publishedAt: "1 month ago",
-      duration: "15:02"
-    },
-    {
-      id: "mock-4",
-      title: `I Spent $500 Testing Thumbnails for ${niche}`,
-      channelName: "A/B Room",
-      imageUrl: svgThumbnail(3, "TESTED"),
-      views: "744K views",
-      publishedAt: "3 weeks ago",
-      duration: "18:37"
-    },
-    {
-      id: "mock-5",
-      title: `${niche}: The Before and After Nobody Shows You`,
-      channelName: "Retention House",
-      imageUrl: svgThumbnail(4, "BEFORE"),
-      views: "63K views",
-      publishedAt: "Yesterday",
-      duration: "7:55"
-    }
-  ];
+  return getCompetitorImages(niche).map((image, index) => ({
+    id: `mock-${index + 1}`,
+    title: titleForImage(image, niche, index),
+    channelName: channels[index] ?? "Creator Studio",
+    imageUrl: image.imageUrl,
+    views: views[index] ?? "42K views",
+    publishedAt: dates[index] ?? "This week",
+    duration: durations[index] ?? "10:00"
+  }));
 }
-
