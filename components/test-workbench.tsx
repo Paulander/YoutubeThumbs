@@ -11,7 +11,9 @@ import { Button, Field, inputClass } from "./ui";
 import { ContextPreview, PreviewTabs } from "./preview-shell";
 import { VideoThumb } from "./video-card";
 
-const maxFileSize = 4 * 1024 * 1024;
+const maxFileSize = 20 * 1024 * 1024;
+const maxPayloadBytes = 520 * 1024;
+const maxThumbnailDimension = 1280;
 const supportedTypes = new Set(["image/png", "image/jpeg", "image/webp"]);
 
 function getSessionId() {
@@ -27,13 +29,90 @@ function getSessionId() {
   return created;
 }
 
-async function readFileAsDataUrl(file: File) {
+function blobToDataUrl(blob: Blob) {
   return new Promise<string>((resolve, reject) => {
     const reader = new FileReader();
     reader.onload = () => resolve(String(reader.result));
     reader.onerror = reject;
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(blob);
   });
+}
+
+function loadImage(file: File) {
+  return new Promise<HTMLImageElement>((resolve, reject) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      reject(new Error("Could not read image."));
+    };
+    image.src = objectUrl;
+  });
+}
+
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number) {
+  return new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          resolve(blob);
+        } else {
+          reject(new Error("Could not compress image."));
+        }
+      },
+      type,
+      quality
+    );
+  });
+}
+
+async function compressThumbnail(file: File) {
+  const image = await loadImage(file);
+  const scale = Math.min(1, maxThumbnailDimension / Math.max(image.naturalWidth, image.naturalHeight));
+  const width = Math.max(1, Math.round(image.naturalWidth * scale));
+  const height = Math.max(1, Math.round(image.naturalHeight * scale));
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+
+  const context = canvas.getContext("2d");
+  if (!context) {
+    throw new Error("Could not prepare image compression.");
+  }
+
+  context.drawImage(image, 0, 0, width, height);
+
+  const outputType = file.type === "image/png" ? "image/jpeg" : "image/webp";
+  const qualities = [0.82, 0.72, 0.62, 0.52, 0.44];
+  let bestBlob = await canvasToBlob(canvas, outputType, qualities[0]);
+
+  for (const quality of qualities.slice(1)) {
+    if (bestBlob.size <= maxPayloadBytes) {
+      break;
+    }
+    bestBlob = await canvasToBlob(canvas, outputType, quality);
+  }
+
+  return blobToDataUrl(bestBlob);
+}
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
+  const contentType = response.headers.get("content-type") ?? "";
+
+  if (contentType.includes("application/json")) {
+    return (await response.json()) as T;
+  }
+
+  const text = await response.text();
+  throw new Error(
+    text.includes("Request Entity Too Large") || response.status === 413
+      ? "Those thumbnails are still too large to save. Try fewer files or smaller exports."
+      : "The server returned an unexpected response. Try again in a moment."
+  );
 }
 
 export function TestWorkbench({ compact = false }: { compact?: boolean }) {
@@ -49,6 +128,7 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
   const [competitors, setCompetitors] = useState<CompetitorVideo[]>(() => getMockCompetitors(targetKeyword));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [processingUploads, setProcessingUploads] = useState(false);
   const [savedTest, setSavedTest] = useState<ThumbnailTest | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -110,16 +190,18 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
     const oversized = nextFiles.find((file) => file.size > maxFileSize);
 
     if (oversized) {
-      setError(`${oversized.name} is larger than 4MB. Export a smaller JPG or PNG and try again.`);
+      setError(`${oversized.name} is larger than 20MB. Try exporting a smaller JPG, PNG, or WebP.`);
       return;
     }
+
+    setProcessingUploads(true);
 
     try {
       const uploaded = await Promise.all(
         nextFiles.map(async (file, index) => ({
           id: makeId("variant"),
           name: file.name.replace(/\.[^.]+$/, "") || `Variant ${variants.length + index + 1}`,
-          imageUrl: await readFileAsDataUrl(file)
+          imageUrl: await compressThumbnail(file)
         }))
       );
 
@@ -128,6 +210,8 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
       void trackEvent("thumbnail_uploaded", { count: uploaded.length });
     } catch {
       setError("Upload failed. Try exporting the thumbnail again as a smaller JPG, PNG, or WebP.");
+    } finally {
+      setProcessingUploads(false);
     }
   }
 
@@ -163,7 +247,7 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
         })
       });
 
-      const data = (await response.json()) as { test?: ThumbnailTest; error?: string };
+      const data = await parseJsonResponse<{ test?: ThumbnailTest; error?: string }>(response);
 
       if (!response.ok || !data.test) {
         throw new Error(data.error ?? "Could not create test.");
@@ -173,7 +257,7 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
       void trackEvent("test_created", { variants: variants.length, keyword_present: Boolean(targetKeyword.trim()) });
       void trackEvent("vote_link_created", { variants: variants.length });
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not create test.");
+      setError(caught instanceof Error ? caught.message : "Could not create test. Try smaller images or fewer variants.");
     } finally {
       setSaving(false);
     }
@@ -203,7 +287,7 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
           </div>
 
           <div className="grid gap-4">
-            <Field label="Thumbnail variants" hint="Upload 1-4 JPG, PNG, or WebP files.">
+            <Field label="Thumbnail variants" hint="Upload 1-4 JPG, PNG, or WebP files. Large images are compressed before saving.">
               <div className="rounded-md border border-dashed border-black/20 bg-paper p-4 text-center">
                 <UploadCloud className="mx-auto h-8 w-8 text-ink/45" aria-hidden />
                 <p className="mt-2 text-sm font-semibold text-ink/70">Drop or choose thumbnail files</p>
@@ -216,6 +300,10 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
                 />
               </div>
             </Field>
+
+            {processingUploads ? (
+              <p className="rounded-md bg-cobalt/10 px-3 py-2 text-sm font-semibold text-cobalt">Processing thumbnails before saving...</p>
+            ) : null}
 
             {variants.length ? (
               <div className="grid grid-cols-2 gap-2">
@@ -259,7 +347,7 @@ export function TestWorkbench({ compact = false }: { compact?: boolean }) {
 
             {error ? <p className="rounded-md bg-coral/10 px-3 py-2 text-sm font-semibold text-coral">{error}</p> : null}
 
-            <Button onClick={createTest} disabled={saving}>
+            <Button onClick={createTest} disabled={saving || processingUploads}>
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
               Create voting link
             </Button>
