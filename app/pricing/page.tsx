@@ -7,7 +7,7 @@ import { SectionTitle } from "@/components/ui";
 
 export const metadata: Metadata = {
   title: "Pricing",
-  description: "ThumbBattle pricing for free tests, credits, Pro, and a founding creator offer when configured.",
+  description: "ThumbBattle pricing for free thumbnail tests and founding creator early access.",
   alternates: { canonical: "/pricing" }
 };
 
@@ -18,28 +18,28 @@ const plans = [
   {
     name: "Free",
     price: "$0",
-    description: "For trying the workflow before launch.",
-    features: ["3 tests/month", "Desktop and mobile preview", "Voting links during MVP"]
+    description: "For trying ThumbBattle on real thumbnail decisions.",
+    features: ["Create thumbnail tests", "Desktop and mobile preview", "Share voting links"]
   },
   {
     name: "Credits",
     price: "$9+",
-    description: "For creators who test in batches.",
-    features: ["$9 for 20 tests", "$19 for 60 tests", "$39 for 150 tests"],
+    description: "For creators who prefer pay-as-you-go testing.",
+    features: ["$9 for 20 tests", "$19 for 60 tests", "$39 for 150 tests", "Coming after early access"],
     disabled: true
   },
   {
     name: "Pro",
     price: "$9/mo",
-    description: "For repeat creators and thumbnail designers.",
-    features: ["Unlimited previews", "$79/year planned", "Client voting links", "Inspiration library"],
+    description: "For creators and thumbnail designers who test every week.",
+    features: ["Unlimited previews", "$79/year option planned", "Client voting links", "Inspiration library"],
     disabled: true
   },
   {
     name: "Founding Creator",
     price: "$19 lifetime",
-    description: "Fast MVP payment-link offer if configured.",
-    features: ["100 tests", "Early feedback channel", "No subscription"],
+    description: "A limited early-access offer for the first creators using ThumbBattle seriously.",
+    features: ["100 thumbnail tests", "Early feedback priority", "No subscription"],
     founding: true
   }
 ];
@@ -50,8 +50,8 @@ export default function PricingPage() {
       <PageEvent event="pricing_viewed" />
       <SectionTitle
         eyebrow="Pricing"
-        title="Start free, upgrade when payment links are configured"
-        body="The MVP does not require payment locally. The fastest launch path is a Stripe Payment Link for the founding creator offer."
+        title="Start free, support the early build if it helps"
+        body="ThumbBattle is free to try while the product is in early access. Founding Creator is for people who want a larger test allowance and to support the tool as it grows."
       />
 
       <div className="mt-8 grid gap-5 lg:grid-cols-4">
@@ -80,7 +80,7 @@ export default function PricingPage() {
       </div>
 
       <div className="mt-8 rounded-lg border border-black/10 bg-paper p-5 text-sm leading-6 text-ink/68">
-        Full Stripe subscriptions, credit balance, webhook fulfillment, Pro entitlement, and customer portal are documented TODOs. For manual setup or early access questions, contact <a className="font-bold text-cobalt" href={`mailto:${contactEmail}`}>{contactEmail}</a>.
+        Questions, team use, or billing help? Contact <a className="font-bold text-cobalt" href={`mailto:${contactEmail}`}>{contactEmail}</a>. Not affiliated with YouTube.
       </div>
     </main>
   );
