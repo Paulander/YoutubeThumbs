@@ -1,3 +1,5 @@
+import posthog from "posthog-js";
+
 export type AnalyticsProperties = Record<string, string | number | boolean | null | undefined>;
 
 const attributionKey = "thumbbattle.first_touch";
@@ -61,40 +63,42 @@ export function getAttribution() {
   }
 }
 
-export async function trackEvent(event: string, properties: AnalyticsProperties = {}) {
-  if (!isBrowser()) {
-    return;
+let posthogReady = false;
+
+function ensurePostHog() {
+  if (!isBrowser() || posthogReady) {
+    return posthogReady;
   }
 
   const apiKey = process.env.NEXT_PUBLIC_POSTHOG_KEY;
   if (!apiKey) {
-    return;
+    return false;
   }
 
-  const host = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
-  const payload = {
-    api_key: apiKey,
-    event,
-    properties: {
-      ...getAttribution(),
-      ...properties,
-      path: window.location.pathname,
-      href: window.location.href
+  posthog.init(apiKey, {
+    api_host: process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://eu.i.posthog.com",
+    autocapture: false,
+    capture_pageview: false,
+    disable_session_recording: true,
+    persistence: "localStorage+cookie",
+    loaded: () => {
+      posthogReady = true;
     }
-  };
+  });
 
-  const body = JSON.stringify(payload);
-  const url = `${host.replace(/\/$/, "")}/capture/`;
+  posthogReady = true;
+  return true;
+}
 
-  if (navigator.sendBeacon) {
-    navigator.sendBeacon(url, new Blob([body], { type: "application/json" }));
+export async function trackEvent(event: string, properties: AnalyticsProperties = {}) {
+  if (!ensurePostHog()) {
     return;
   }
 
-  await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body,
-    keepalive: true
-  }).catch(() => undefined);
+  posthog.capture(event, {
+    ...getAttribution(),
+    ...properties,
+    path: window.location.pathname,
+    href: window.location.href
+  });
 }
