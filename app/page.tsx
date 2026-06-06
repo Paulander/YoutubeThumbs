@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import { ArrowRight, BarChart3, CheckCircle2, MousePointerClick, Share2 } from "lucide-react";
 import { PageEvent } from "@/components/analytics/page-event";
 import { TrackedLink } from "@/components/analytics/tracked-link";
+import { HeroVisual } from "@/components/marketing/hero-visual";
 import { TestWorkbench } from "@/components/test-workbench";
 
 const proof = [
@@ -78,20 +78,7 @@ export default function HomePage() {
             ))}
           </div>
         </div>
-        <div className="relative min-h-[420px] overflow-hidden rounded-lg border border-black/10 bg-ink shadow-soft">
-          <Image
-            src="/mock/creator-lab-thumbnail.png"
-            alt="Creator thumbnail testing workspace"
-            fill
-            priority
-            className="object-cover opacity-90"
-            sizes="(max-width: 1024px) 92vw, 48vw"
-          />
-          <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/28 to-transparent p-6 text-white">
-            <p className="text-sm font-black uppercase tracking-[0.16em] text-white/75">Thumbnail mockup tool</p>
-            <h2 className="mt-2 max-w-md text-3xl font-black tracking-tight">Find the click before the upload.</h2>
-          </div>
-        </div>
+        <HeroVisual />
       </section>
 
       <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -119,8 +106,8 @@ export default function HomePage() {
         <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
           <div className="rounded-lg border border-black/10 bg-white p-6 shadow-soft">
             <p className="text-sm font-black uppercase tracking-[0.16em] text-coral">Pricing teaser</p>
-            <h2 className="mt-2 text-2xl font-black tracking-tight">Free to start, paid plans ready for launch.</h2>
-            <p className="mt-2 text-ink/65">Use the local MVP without payment. Pricing surfaces support credits, Pro, and an optional founding creator Payment Link.</p>
+            <h2 className="mt-2 text-2xl font-black tracking-tight">Free to start, founding access available.</h2>
+            <p className="mt-2 text-ink/65">Try the core workflow free, or support the early build with Founding Creator access.</p>
             <Link href="/pricing" className="mt-5 inline-flex min-h-11 items-center rounded-md bg-coral px-5 py-3 text-sm font-black text-white">View pricing</Link>
           </div>
           <div className="rounded-lg border border-black/10 bg-paper p-6">

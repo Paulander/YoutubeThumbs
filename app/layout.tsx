@@ -30,10 +30,10 @@ export const metadata: Metadata = {
     siteName: "ThumbBattle",
     images: [
       {
-        url: "/mock/creator-lab-thumbnail.png",
-        width: 1280,
-        height: 720,
-        alt: "ThumbBattle thumbnail preview workspace"
+        url: "/mock/thumbbattle-hero-alt.png",
+        width: 1672,
+        height: 941,
+        alt: "ThumbBattle thumbnail preview and voting concept"
       }
     ],
     type: "website"
@@ -42,7 +42,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "ThumbBattle | YouTube thumbnail preview",
     description: "Preview thumbnail variants in context before publishing.",
-    images: ["/mock/creator-lab-thumbnail.png"]
+    images: ["/mock/thumbbattle-hero-alt.png"]
   }
 };
 
